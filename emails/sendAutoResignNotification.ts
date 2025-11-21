@@ -1,11 +1,14 @@
+import type { ObjectId } from 'mongodb';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { getTranslations } from '../i18n';
 
 interface AutoResignUser {
+	_id: ObjectId | string;
 	email: string;
 	name?: string | null;
 	preferredLocale?: string | null;
+	unsubscribeDate?: Date | string | null;
 }
 
 interface AutoResignNotificationOptions {
@@ -20,6 +23,7 @@ const templatePath = resolve(
 );
 
 const DEFAULT_BASE_URL = 'https://www.distrochess.com';
+const UNSUBSCRIBE_BASE_URL = 'https://www.distrochess.com/unsubscribe';
 
 let cachedTemplate: string | null = null;
 
@@ -46,10 +50,17 @@ export async function sendAutoResignNotification(
 	}
 
 	const { user, gameId, autoResignDelayHours } = options;
+	if (user.unsubscribeDate) {
+		return;
+	}
 	const locale = user.preferredLocale ?? undefined;
 	const t = getTranslations(locale);
 	const copy = t.emails.autoResign;
 	const playerName = (user.name || '').trim();
+	const userId = normalizeUserId(user._id);
+	if (!userId) {
+		throw new Error('User ID is required to build unsubscribe links.');
+	}
 
 	const greeting = copy.greeting.replace('{name}', playerName);
 	const hoursText = String(autoResignDelayHours);
@@ -63,6 +74,9 @@ export async function sendAutoResignNotification(
 	const ctaUrl = `${baseUrl.replace(/\/$/, '')}/?gameId=${encodeURIComponent(
 		gameId
 	)}`;
+	const unsubscribeUrl = `${UNSUBSCRIBE_BASE_URL}?userId=${encodeURIComponent(
+		userId
+	)}&unsub=true`;
 
 	const template = await loadTemplate();
 	const htmlBody = applyReplacements(template, {
@@ -73,6 +87,8 @@ export async function sendAutoResignNotification(
 		'{{ctaText}}': ctaText,
 		'{{ctaUrl}}': ctaUrl,
 		'{{footerMessage}}': footer,
+		'{{unsubscribeText}}': copy.unsubscribeLinkText,
+		'{{unsubscribeUrl}}': unsubscribeUrl,
 	});
 
 	const textBody = [
@@ -82,6 +98,7 @@ export async function sendAutoResignNotification(
 		description,
 		'',
 		`${ctaText}: ${ctaUrl}`,
+		`${copy.unsubscribeLinkText}: ${unsubscribeUrl}`,
 	]
 		.filter(Boolean)
 		.join('\n');
@@ -132,4 +149,11 @@ function applyReplacements(
 		const parts = acc.split(token);
 		return parts.join(value);
 	}, template);
+}
+
+function normalizeUserId(id: ObjectId | string): string {
+	if (typeof id === 'string') {
+		return id;
+	}
+	return typeof id?.toString === 'function' ? id.toString() : '';
 }

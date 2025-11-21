@@ -10,6 +10,7 @@ export const fr: Translations = {
 				'Cliquez ci-dessous pour rouvrir votre partie avant la défaite automatique.',
 			ctaText: 'Jouez votre coup',
 			footer: "À bientôt sur l'échiquier !",
+			unsubscribeLinkText: 'Se désabonner de ces rappels',
 		},
 	},
 };

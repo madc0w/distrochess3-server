@@ -74,6 +74,7 @@ interface UserDoc {
 	email: string;
 	name?: string | null;
 	preferredLocale?: string | null;
+	unsubscribeDate?: Date | null;
 }
 
 async function getDb(): Promise<Db> {

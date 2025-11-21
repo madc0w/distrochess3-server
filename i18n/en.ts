@@ -8,6 +8,7 @@ export const en = {
 				'Click below to jump back into the game before the auto-resign timer expires.',
 			ctaText: 'Make your move',
 			footer: 'See you on the board!',
+			unsubscribeLinkText: 'Unsubscribe from these reminders',
 		},
 	},
 };
