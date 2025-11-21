@@ -39,42 +39,35 @@ const log = (
 	}
 };
 
-const pollIntervalMs = Number(process.env.WORKER_POLL_INTERVAL_MS ?? 60_000);
+const pollIntervalSecs = Number(process.env.WORKER_POLL_INTERVAL_MS ?? 120);
 let isShuttingDown = false;
 
-async function runJobCycle(): Promise<void> {
-	// Replace the placeholder implementation with the actual business logic.
-	log('info', 'Worker heartbeat', { pollIntervalMs });
-}
+// async function runJobCycle(): Promise<void> {
+// 	// Replace the placeholder implementation with the actual business logic.
+// 	log('info', 'Worker heartbeat', { pollIntervalMs });
+// }
 
-async function tick(): Promise<void> {
-	if (isShuttingDown) {
-		return;
-	}
+// async function tick(): Promise<void> {
+// 	if (isShuttingDown) {
+// 		return;
+// 	}
 
-	try {
-		await runJobCycle();
-	} catch (error) {
-		log('error', 'Job cycle failed', { error });
-	}
-}
+// 	try {
+// 		await runJobCycle();
+// 	} catch (error) {
+// 		log('error', 'Job cycle failed', { error });
+// 	}
+// }
 
-const timer = setInterval(() => {
-	void tick();
-}, pollIntervalMs);
-
-// Run immediately instead of waiting for the first interval.
-void tick();
-
-const shutdown = async (signal: NodeJS.Signals) => {
+async function shutdown(signal: NodeJS.Signals) {
 	if (isShuttingDown) {
 		return;
 	}
 	isShuttingDown = true;
 	log('warn', 'Received shutdown signal', { signal });
-	clearInterval(timer);
+	clearInterval(pollIntervalId);
 	process.exit(0);
-};
+}
 
 process.on('SIGTERM', shutdown);
 process.on('SIGINT', shutdown);
@@ -87,3 +80,7 @@ process.on('uncaughtException', (error: unknown) => {
 	log('error', 'Uncaught exception', { error });
 	void shutdown('SIGTERM');
 });
+
+const pollIntervalId = setInterval(() => {
+	log('info', 'polling...');
+}, pollIntervalSecs * 1000);
