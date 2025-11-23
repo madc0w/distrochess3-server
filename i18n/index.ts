@@ -1,9 +1,11 @@
+import { de } from './de';
 import { en } from './en';
 import { fr } from './fr';
 
 const dictionaries = {
 	en,
 	fr,
+	de,
 };
 
 type LocaleKey = keyof typeof dictionaries;
