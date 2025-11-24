@@ -2,12 +2,14 @@ import { de } from './de';
 import { en } from './en';
 import { es } from './es';
 import { fr } from './fr';
+import { jp } from './jp';
 
 const dictionaries = {
 	en,
 	fr,
 	de,
 	es,
+	jp,
 };
 
 type LocaleKey = keyof typeof dictionaries;
