@@ -228,7 +228,12 @@ async function sendAutoResignNotifications(): Promise<void> {
 			})
 			.toArray();
 
-		log('info', `Found ${games.length} stale game(s). will notify players.`);
+		log(
+			'info',
+			games.length > 0
+				? `Found ${games.length} stale game(s). will notify players.`
+				: 'No stale games found.'
+		);
 		await db.collection('games').updateMany(
 			{
 				_id: { $in: games.map((g) => g._id) },
